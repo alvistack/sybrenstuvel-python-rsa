@@ -1,0 +1,29 @@
+Source: python-rsa
+Section: python
+Priority: optional
+Standards-Version: 4.5.0
+Maintainer: Wong Hoi Sing Edison <hswong3i@gmail.com>
+Homepage: https://github.com/sybrenstuvel/python-rsa/tags
+Vcs-Browser: https://github.com/alvistack/sybrenstuvel-python-rsa
+Vcs-Git: https://github.com/alvistack/sybrenstuvel-python-rsa.git
+Build-Depends:
+ debhelper,
+ debhelper-compat (= 10),
+ dh-python,
+ fdupes,
+ python3-dev,
+ python3-setuptools,
+
+Package: python3-rsa
+Architecture: all
+Description: Pure-Python RSA implementation
+ Python-RSA is a pure-Python RSA implementation. It supports encryption
+ and decryption, signing and verifying signatures, and key generation
+ according to PKCS#1 version 1.5. It can be used as a Python library as
+ well as on the command-line.
+Depends:
+ ${misc:Depends},
+ ${shlibs:Depends},
+ ${python3:Depends},
+ python3,
+ python3-pyasn1 (>= 0.1.3),

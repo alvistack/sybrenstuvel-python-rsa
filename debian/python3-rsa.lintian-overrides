@@ -1,0 +1,4 @@
+python3-rsa: copyright-without-copyright-notice
+python3-rsa: initial-upload-closes-no-bugs
+python3-rsa: no-manual-page
+python3-rsa: zero-byte-file-in-doc-directory
