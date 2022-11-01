@@ -47,9 +47,6 @@ HASH_ASN1 = {
     "SHA-256": b"\x30\x31\x30\x0d\x06\x09\x60\x86\x48\x01\x65\x03\x04\x02\x01\x05\x00\x04\x20",
     "SHA-384": b"\x30\x41\x30\x0d\x06\x09\x60\x86\x48\x01\x65\x03\x04\x02\x02\x05\x00\x04\x30",
     "SHA-512": b"\x30\x51\x30\x0d\x06\x09\x60\x86\x48\x01\x65\x03\x04\x02\x03\x05\x00\x04\x40",
-    "SHA3-256": b"\x30\x31\x30\x0d\x06\x09\x60\x86\x48\x01\x65\x03\x04\x02\x08\x05\x00\x04\x20",
-    "SHA3-384": b"\x30\x41\x30\x0d\x06\x09\x60\x86\x48\x01\x65\x03\x04\x02\x09\x05\x00\x04\x30",
-    "SHA3-512": b"\x30\x51\x30\x0d\x06\x09\x60\x86\x48\x01\x65\x03\x04\x02\x0a\x05\x00\x04\x40",
 }
 
 HASH_METHODS: typing.Dict[str, typing.Callable[[], HashType]] = {
@@ -59,11 +56,27 @@ HASH_METHODS: typing.Dict[str, typing.Callable[[], HashType]] = {
     "SHA-256": hashlib.sha256,
     "SHA-384": hashlib.sha384,
     "SHA-512": hashlib.sha512,
-    "SHA3-256": hashlib.sha3_256,
-    "SHA3-384": hashlib.sha3_384,
-    "SHA3-512": hashlib.sha3_512,
 }
 """Hash methods supported by this library."""
+
+
+if sys.version_info >= (3, 6):
+    # Python 3.6 introduced SHA3 support.
+    HASH_ASN1.update(
+        {
+            "SHA3-256": b"\x30\x31\x30\x0d\x06\x09\x60\x86\x48\x01\x65\x03\x04\x02\x08\x05\x00\x04\x20",
+            "SHA3-384": b"\x30\x41\x30\x0d\x06\x09\x60\x86\x48\x01\x65\x03\x04\x02\x09\x05\x00\x04\x30",
+            "SHA3-512": b"\x30\x51\x30\x0d\x06\x09\x60\x86\x48\x01\x65\x03\x04\x02\x0a\x05\x00\x04\x40",
+        }
+    )
+
+    HASH_METHODS.update(
+        {
+            "SHA3-256": hashlib.sha3_256,
+            "SHA3-384": hashlib.sha3_384,
+            "SHA3-512": hashlib.sha3_512,
+        }
+    )
 
 
 class CryptoError(Exception):
@@ -274,8 +287,8 @@ def decrypt(crypto: bytes, priv_key: key.PrivateKey) -> bytes:
 def sign_hash(hash_value: bytes, priv_key: key.PrivateKey, hash_method: str) -> bytes:
     """Signs a precomputed hash with the private key.
 
-    Signs the hash with the given key. This is known as a "detached signature",
-    because the message itself isn't altered.
+    Hashes the message, then signs the hash with the given key. This is known
+    as a "detached signature", because the message itself isn't altered.
 
     :param hash_value: A precomputed hash to sign (ignores message).
     :param priv_key: the :py:class:`rsa.PrivateKey` to sign with
@@ -298,7 +311,7 @@ def sign_hash(hash_value: bytes, priv_key: key.PrivateKey, hash_method: str) -> 
     padded = _pad_for_signing(cleartext, keylength)
 
     payload = transform.bytes2int(padded)
-    encrypted = priv_key.blinded_decrypt(payload)
+    encrypted = priv_key.blinded_encrypt(payload)
     block = transform.int2bytes(encrypted, keylength)
 
     return block
@@ -342,11 +355,8 @@ def verify(message: bytes, signature: bytes, pub_key: key.PublicKey) -> str:
     """
 
     keylength = common.byte_size(pub_key.n)
-    if len(signature) != keylength:
-        raise VerificationError("Verification failed")
-    
     encrypted = transform.bytes2int(signature)
-    decrypted = core.encrypt_int(encrypted, pub_key.e, pub_key.n)
+    decrypted = core.decrypt_int(encrypted, pub_key.e, pub_key.n)
     clearsig = transform.int2bytes(decrypted, keylength)
 
     # Get the hash method
@@ -356,6 +366,9 @@ def verify(message: bytes, signature: bytes, pub_key: key.PublicKey) -> str:
     # Reconstruct the expected padded hash
     cleartext = HASH_ASN1[method_name] + message_hash
     expected = _pad_for_signing(cleartext, keylength)
+
+    if len(signature) != keylength:
+        raise VerificationError("Verification failed")
 
     # Compare with the signed one
     if expected != clearsig:
