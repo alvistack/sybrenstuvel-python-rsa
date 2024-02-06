@@ -1,0 +1,4 @@
+python-rsa source: file-without-copyright-information
+python-rsa source: no-debian-changes
+python-rsa source: source-contains-prebuilt-windows-binary
+python-rsa source: source-package-encodes-python-version
