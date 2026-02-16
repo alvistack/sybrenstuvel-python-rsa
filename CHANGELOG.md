@@ -1,12 +1,9 @@
 # Python-RSA changelog
 
-## Version 4.10 - in development
+## Version 4.9.1 - release 2025-04-16
 
-- Drop support for Python 3.6 ([#209](https://github.com/sybrenstuvel/python-rsa/pull/209))
-  and declare support for 3.11 ([#208](https://github.com/sybrenstuvel/python-rsa/pull/208)).
-- Upgrade `pytest` dependency to fix a [security issue](https://github.com/pytest-dev/py/issues/287#issuecomment-1290407715).
-- Upgrade `pytest-cov` as well, for good measure.
-- Upgrade MyPy ([#211](https://github.com/sybrenstuvel/python-rsa/issues/211)).
+- Final release, just to add a note about the 'archived' status of the project.
+  No other changes. See `README.md` for more info.
 
 ## Version 4.9 - release 2022-07-20
 
